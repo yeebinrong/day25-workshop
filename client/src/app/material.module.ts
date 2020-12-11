@@ -18,6 +18,7 @@ import {MatTableModule} from '@angular/material/table';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatSelectModule} from '@angular/material/select';
+import {MatDividerModule} from '@angular/material/divider';
 
 const MATERIAL = [
   MatFormFieldModule,
@@ -36,7 +37,8 @@ const MATERIAL = [
   MatTableModule,
   MatButtonToggleModule,
   MatSlideToggleModule,
-  MatSelectModule
+  MatSelectModule,
+  MatDividerModule
 ];
 
 @NgModule({

@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { Todo } from '../models';
+import { FormComponent } from './form.component';
 
 @Component({
   selector: 'app-main',
@@ -6,10 +8,9 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./main.component.css']
 })
 export class MainComponent implements OnInit {
-
+  TodoSummary: Todo[] = []
   constructor() { }
 
   ngOnInit(): void {
   }
-
 }
