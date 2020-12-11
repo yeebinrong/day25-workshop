@@ -42,7 +42,7 @@ export class SubformComponent implements OnInit {
       this.apiSvc.apiUpdateData(values)
       .then (() => {
         // // navigate to /
-        // this.router.navigate(['/']);
+        this.router.navigate(['/']);
       })
     } else {
     // IF ID DOES NOT EXIST, INSERT VALUES

@@ -155,13 +155,32 @@ SQL_INSERT = async (data) => {
 
 SQL_UPDATE = async (data) => {
     try {
-        await QUERY_UPDATE_TODO_BY_ID([data['name'], data['due'], data['id']])
-        const taskArray = data.tasks.map(task => {
-            return [task.task_id, task.description, task.priority]
+        // check which queries have no id
+        let insertTask = [...data.tasks].filter(task => {
+            if(task.task_id == null) return task
         })
+        let updateTask = [...data.tasks].filter(task => {
+            if(task.task_id != null) return task
+        })
+
+        insertTask = insertTask.map(task => {
+            return [data.id, task.description, task.priority]
+        }) 
+        updateTask = updateTask.map(task => {
+            return [task.task_id, data.id, task.description, task.priority]
+        })
+
+        console.info("insert: " , insertTask)
+        console.info("update: " , updateTask)
+        await QUERY_UPDATE_TODO_BY_ID([data['name'], data['due'], data['id']])
+
         if (data.tasks.length > 0) {
-            console.info(taskArray)
-            await QUERY_UPDATE_TASK_BY_TASK_ID([taskArray])
+            if (insertTask.length > 0) {
+                await QUERY_INSERT_TASKS([insertTask])
+            }
+            if (updateTask.length > 0) {
+                await QUERY_UPDATE_TASK_BY_TASK_ID([updateTask])
+            }
         }
     } catch (e) {
         console.info("UPDATE ERROR: ", e)
@@ -198,7 +217,7 @@ const DELETE_TODO_WITH_ID = 'DELETE FROM todo WHERE id = ?';
 const DELETE_ALL_TASK_WITH_ID = 'DELETE FROM tasks WHERE id = ?';
 
 const UPDATE_TODO_BY_ID = 'UPDATE todo SET name=?, due=? WHERE id = ?'
-const UPDATE_TASKS_BY_TASK_ID = 'UPDATE tasks SET task_id=?, description=?, priority=? WHERE task_id IN (?)'
+const UPDATE_TASKS_BY_TASK_ID = 'INSERT INTO tasks (task_id, id, description, priority) VALUES ? ON DUPLICATE KEY UPDATE task_id=task_id'
 
 // SQL QUERIES
 const QUERY_INSERT_TODO_RETURN_ID = makeQuery(INSERT_TODO_RETURN_ID, POOL)
