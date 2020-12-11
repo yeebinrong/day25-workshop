@@ -217,7 +217,7 @@ const DELETE_TODO_WITH_ID = 'DELETE FROM todo WHERE id = ?';
 const DELETE_ALL_TASK_WITH_ID = 'DELETE FROM tasks WHERE id = ?';
 
 const UPDATE_TODO_BY_ID = 'UPDATE todo SET name=?, due=? WHERE id = ?'
-const UPDATE_TASKS_BY_TASK_ID = 'INSERT INTO tasks (task_id, id, description, priority) VALUES ? ON DUPLICATE KEY UPDATE task_id=task_id'
+const UPDATE_TASKS_BY_TASK_ID = 'INSERT INTO tasks (task_id, id, description, priority) VALUES ? ON DUPLICATE KEY UPDATE description=VALUES(description), priority=VALUES(priority)'
 
 // SQL QUERIES
 const QUERY_INSERT_TODO_RETURN_ID = makeQuery(INSERT_TODO_RETURN_ID, POOL)
