@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Todo, TodoSummary } from './models';
 
 @Injectable({
@@ -7,7 +8,7 @@ import { Todo, TodoSummary } from './models';
 })
 export class ApiService {
 
-  constructor(private http:HttpClient) { }
+  constructor(private http:HttpClient, private router:Router) { }
 
   // SAVES ONE FORM TO MYSQL
   apiSaveData(formData:Todo) {
@@ -28,5 +29,15 @@ export class ApiService {
   async apiGetTodo() {
     console.info("getting to do")
     return await this.http.get<TodoSummary[]>('http://localhost:3000/api/todo/all').toPromise()
-  } 
+  }
+
+  // DELETES ONE FORM FROM MYSQL
+  async apiDeleteForm(id):Promise<any> {
+    return this.http.delete<any>('http://localhost:3000/api/todo/' + id).toPromise()
+  }
+
+  // REDIRECTS TO ERROR PAGE
+  redirectError () {
+    this.router.navigate(['/error'])
+  }
 }

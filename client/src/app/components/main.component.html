@@ -1,11 +1,14 @@
 <div fxFill fxLayout="column">
     <button type="button" mat-raised-button color="accent" [routerLink]="['/form']">Create new todo</button>
-    <button type="button" [routerLink]="['/form', todo.id]" mat-raised-button *ngFor="let todo of TodoSummary; let i = index">
-        <p>
-           T0D0: <em>{{todo.name}}</em>
-        </p>
-        <p>
-           Due by: <em>{{todo.due}}</em>
-        </p>
-    </button>
+    <div *ngFor="let todo of TodoSummary; let i = index">
+        <button fxFlex type="button" [routerLink]="['/form', todo.id]" mat-raised-button>
+            <span>
+            T0D0: <em>{{todo.name}}</em>
+            </span>
+            <span>
+            Due by: <em>{{todo.due}}</em>
+            </span>
+        </button>
+        <button type="button" (click)="onDeleteTodo(i)" mat-raised-button color="warn">Delete</button>
+    </div>
 </div>

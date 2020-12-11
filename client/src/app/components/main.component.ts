@@ -17,4 +17,11 @@ export class MainComponent implements OnInit {
       this.TodoSummary = data
     }) 
   }
+
+  onDeleteTodo(index) {
+    if (window.confirm("Delete task?")) {
+      this.apiSvc.apiDeleteForm(this.TodoSummary[index].id)
+      this.TodoSummary.splice(index, 1)
+    }
+  }
 }

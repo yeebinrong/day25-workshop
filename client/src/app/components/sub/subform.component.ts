@@ -45,9 +45,11 @@ export class SubformComponent implements OnInit {
     for (let i of f.tasks) {
       this.onAddTask()
     }
+    console.info(f.id)
     this.form.patchValue({
+      id: f.id,
       name: f.name,
-      due: moment(f.due),
+      due:   moment(new Date(f.due)),
       tasks: f.tasks
     })
   }
@@ -57,6 +59,7 @@ export class SubformComponent implements OnInit {
   // creates the logic for the <form>
   private InitForm () {
     this.form = this.fb.group({
+      id: this.fb.control(''),
       name: this.fb.control('', [Validators.required]),
       due: this.fb.control('', [Validators.required]),
       tasks: this.fb.array([])

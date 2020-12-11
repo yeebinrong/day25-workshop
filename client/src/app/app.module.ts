@@ -16,6 +16,7 @@ import { SubformComponent } from './components/sub/subform.component';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { ApiService } from './api.service';
+import { ErrorComponent } from './components/error.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { ApiService } from './api.service';
     MainComponent,
     FormComponent,
     SubformComponent,
+    ErrorComponent,
   ],
   imports: [
     BrowserModule,

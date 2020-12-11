@@ -24,6 +24,10 @@ export class FormComponent implements OnInit {
       .then (results => {
         console.info(results)
         this.formRef.todo = results
+      }).catch(err => {
+        // Log error and redirect
+        console.info(`Error id:"${id}" not found: `, err )
+        this.apiSvc.redirectError()
       })
     }
   }
