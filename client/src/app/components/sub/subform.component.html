@@ -1,1 +1,35 @@
-<p>subform works!</p>
+<form [formGroup]="form" fxFill fxLayout="column">
+    <button type="button" [disabled]="this.form.invalid" (click)="onSaveForm()" mat-raised-button color="accent">Save</button>
+    <button type="button" mat-raised-button color="warn" [routerLink]="['/']">Back</button>
+    <mat-form-field>
+        <mat-label>Name of T0D0</mat-label>
+        <input formControlName="name" placeholder="Eg. Sleep" matInput>
+        <mat-error>Please enter a name.</mat-error>
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput [min]="minDate" [matDatepicker]="datepicker" formControlName="due" placeholder="Due date.">
+        <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker></mat-datepicker>
+        <mat-error>Please enter a valid date.</mat-error>
+    </mat-form-field>
+    <button type="button" (click)="onAddTask()" mat-raised-button color="primary">Add tasks</button>
+    <div formArrayName="tasks">
+        <ng-container *ngFor="let task of tasks.controls; let i = index">
+            <div [formGroup]="task">
+                <mat-form-field>
+                    <mat-label>Task</mat-label>
+                    <input formControlName="description" placeholder="Eg. Walk to the bed" matInput>
+                   <mat-error>Please enter a task.</mat-error>
+                </mat-form-field>
+                <mat-radio-group formControlName="priority">
+                    <mat-label>Priority</mat-label>
+                    <mat-radio-button value="Low">Low</mat-radio-button>
+                    <mat-radio-button value="Medium">Medium</mat-radio-button>
+                    <mat-radio-button value="High">High</mat-radio-button>
+                </mat-radio-group>
+                <button type="button" (click)="onDeleteTask(i)" mat-raised-button color="warn">Remove Task</button>
+                <mat-divider></mat-divider>
+           </div>
+        </ng-container>
+    </div>
+</form>

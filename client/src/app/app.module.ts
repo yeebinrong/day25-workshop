@@ -22,7 +22,7 @@ import { ApiService } from './api.service';
     AppComponent,
     MainComponent,
     FormComponent,
-    SubformComponent
+    SubformComponent,
   ],
   imports: [
     BrowserModule,

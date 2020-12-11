@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Todo } from '../models';
-import { FormComponent } from './form.component';
+import { ApiService } from '../api.service';
+import { TodoSummary } from '../models';
 
 @Component({
   selector: 'app-main',
@@ -8,9 +8,13 @@ import { FormComponent } from './form.component';
   styleUrls: ['./main.component.css']
 })
 export class MainComponent implements OnInit {
-  TodoSummary: Todo[] = []
-  constructor() { }
+  TodoSummary: TodoSummary[] = []
+  constructor(private apiSvc:ApiService) { }
 
   ngOnInit(): void {
+    this.apiSvc.apiGetTodo()
+    .then (data => {
+      this.TodoSummary = data
+    }) 
   }
 }

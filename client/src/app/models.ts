@@ -1,6 +1,7 @@
 export interface TodoSummary {
     id?: string;
     name: string;
+    due: string;
 }
 
 export interface Todo {
@@ -11,10 +12,12 @@ export interface Todo {
 }
 
 export interface Task {
+    task_id?: string;
+    id?: string;
     description: string;
-    priority : Priority;
+    priority : string;
 }
 
-export enum Priority {
-    Low = 0, Medium, High
-}
+// export enum Priority {
+//     Low, Medium, High
+// }
