@@ -15,5 +15,12 @@
   "bugs": {
     "url": "https://github.com/yeebinrong/day25-workshop/issues"
   },
-  "homepage": "https://github.com/yeebinrong/day25-workshop#readme"
+  "homepage": "https://github.com/yeebinrong/day25-workshop#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "morgan": "^1.10.0",
+    "mysql2": "^2.2.5",
+    "secure-env": "^1.2.0"
+  }
 }
