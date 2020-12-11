@@ -10,15 +10,28 @@ export class ApiService {
 
   constructor(private http:HttpClient, private router:Router) { }
 
-  // SAVES ONE FORM TO MYSQL
-  apiSaveData(formData:Todo) {
-    console.info(formData)
+
+  // ### PUT REQUEST ###
+  // UPDATE ONE FORM TO MYSQL
+  apiUpdateData(formData:Todo):Promise<any> {
     let fd:FormData = new FormData()
-    console.info(JSON.stringify(formData))
     fd.append('data', JSON.stringify(formData))
-    this.http.post('http://localhost:3000/api/upload', fd).toPromise()
+    return this.http.put('http://localhost:3000/api/upload', fd).toPromise()
+  }  
+
+
+
+  // ### POST REQUEST ###
+  // SAVES ONE FORM TO MYSQL
+  apiSaveData(formData:Todo):Promise<any> {
+    let fd:FormData = new FormData()
+    fd.append('data', JSON.stringify(formData))
+    return this.http.post('http://localhost:3000/api/upload', fd).toPromise()
   }
 
+
+
+  // ### GET REQUEST ###
   // RETURNS ONE FORM FROM MYSQL
   apiGetForm(id):Promise<Todo> {
     console.info("getting form id")
@@ -31,11 +44,17 @@ export class ApiService {
     return await this.http.get<TodoSummary[]>('http://localhost:3000/api/todo/all').toPromise()
   }
 
+
+
+  // ### DELETE REQUEST ###
   // DELETES ONE FORM FROM MYSQL
   async apiDeleteForm(id):Promise<any> {
     return this.http.delete<any>('http://localhost:3000/api/todo/' + id).toPromise()
   }
 
+
+
+  // ### OTHERS ###
   // REDIRECTS TO ERROR PAGE
   redirectError () {
     this.router.navigate(['/error'])

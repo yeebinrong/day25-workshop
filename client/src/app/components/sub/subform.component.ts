@@ -35,17 +35,31 @@ export class SubformComponent implements OnInit {
     // get the new todo from the form
     const values = Object.assign({},this.form.value)
     values.due = values.due._d.toDateString()
-    // save this to the database
-    this.apiSvc.apiSaveData(values);
-    // // navigate to /
-    this.router.navigate(['/']);
+
+    console.info("values are is : ", values)
+    // IF ID EXISTS, DO UPDATE VALUES
+    if (!!values.id) {
+      this.apiSvc.apiUpdateData(values)
+      .then (() => {
+        // // navigate to /
+        // this.router.navigate(['/']);
+      })
+    } else {
+    // IF ID DOES NOT EXIST, INSERT VALUES
+      // save this to the database
+      this.apiSvc.apiSaveData(values)
+      .then (() => {
+        // // navigate to /
+        this.router.navigate(['/']);
+      })
+    }
   }
 
+  // Allows parent component to set todo values
   set todo(f:Todo) {
     for (let i of f.tasks) {
       this.onAddTask()
     }
-    console.info(f.id)
     this.form.patchValue({
       id: f.id,
       name: f.name,
@@ -59,7 +73,7 @@ export class SubformComponent implements OnInit {
   // creates the logic for the <form>
   private InitForm () {
     this.form = this.fb.group({
-      id: this.fb.control(''),
+      id: this.fb.control(null),
       name: this.fb.control('', [Validators.required]),
       due: this.fb.control('', [Validators.required]),
       tasks: this.fb.array([])
@@ -69,6 +83,7 @@ export class SubformComponent implements OnInit {
   // creates a new task to be appended to the form
   private CreateTask() {
     return this.fb.group({
+      task_id: this.fb.control(null),
       description: this.fb.control('', [Validators.required]),
       priority: this.fb.control("Low", [Validators.required])
     })

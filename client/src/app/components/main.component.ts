@@ -12,12 +12,15 @@ export class MainComponent implements OnInit {
   constructor(private apiSvc:ApiService) { }
 
   ngOnInit(): void {
+    // retrieve the all todo summary from mysql and display on main component
     this.apiSvc.apiGetTodo()
     .then (data => {
+      console.info(data)
       this.TodoSummary = data
     }) 
   }
 
+  // Delete todo todo form on main component
   onDeleteTodo(index) {
     if (window.confirm("Delete task?")) {
       this.apiSvc.apiDeleteForm(this.TodoSummary[index].id)
