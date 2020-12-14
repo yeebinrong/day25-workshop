@@ -21,12 +21,13 @@
                     <input formControlName="description" placeholder="Eg. Walk to the bed" matInput>
                    <mat-error>Please enter a task.</mat-error>
                 </mat-form-field>
-                <mat-radio-group formControlName="priority">
+                <mat-radio-group class="ml-1 mr-1" formControlName="priority">
                     <mat-label>Priority</mat-label>
-                    <mat-radio-button value="Low">Low</mat-radio-button>
-                    <mat-radio-button value="Medium">Medium</mat-radio-button>
+                    <mat-radio-button class="ml-1"value="Low">Low</mat-radio-button>
+                    <mat-radio-button class="ml-1 mr-1" value="Medium">Medium</mat-radio-button>
                     <mat-radio-button value="High">High</mat-radio-button>
                 </mat-radio-group>
+                <input id="{{i}}" formControlName="image_file" type="file" accept="image/*">
                 <button type="button" (click)="onDeleteTask(i)" mat-raised-button color="warn">Remove Task</button>
                 <mat-divider></mat-divider>
            </div>
