@@ -34,25 +34,13 @@ export class SubformComponent implements OnInit {
   onSaveForm () {
     // get the new todo from the form
     const values = Object.assign({},this.form.value)
-    values.due = values.due._d.toDateString()
-
+    values.due = values.due.format("DD-MM-YYYY")
     console.info("values are is : ", values)
-    // IF ID EXISTS, DO UPDATE VALUES
-    if (!!values.id) {
-      this.apiSvc.apiUpdateData(values)
-      .then (() => {
-        // // navigate to /
-        this.router.navigate(['/']);
-      })
-    } else {
-    // IF ID DOES NOT EXIST, INSERT VALUES
-      // save this to the database
-      this.apiSvc.apiSaveData(values)
-      .then (() => {
-        // // navigate to /
-        this.router.navigate(['/']);
-      })
-    }
+    this.apiSvc.apiSaveData(values)
+    .then (() => {
+      // // navigate to /
+      this.router.navigate(['/']);
+    })
   }
 
   // Allows parent component to set todo values
@@ -63,7 +51,7 @@ export class SubformComponent implements OnInit {
     this.form.patchValue({
       id: f.id,
       name: f.name,
-      due:   moment(new Date(f.due)),
+      due:   moment(f.due, 'DD-MM-YYYY'),
       tasks: f.tasks
     })
   }
@@ -85,7 +73,8 @@ export class SubformComponent implements OnInit {
     return this.fb.group({
       task_id: this.fb.control(null),
       description: this.fb.control('', [Validators.required]),
-      priority: this.fb.control("Low", [Validators.required])
+      priority: this.fb.control("Low", [Validators.required]),
+      image_file: this.fb.control('')
     })
   }
 }

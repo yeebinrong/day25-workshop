@@ -12,14 +12,6 @@ export class ApiService {
 
 
   // ### PUT REQUEST ###
-  // UPDATE ONE FORM TO MYSQL
-  apiUpdateData(formData:Todo):Promise<any> {
-    let fd:FormData = new FormData()
-    fd.append('data', JSON.stringify(formData))
-    return this.http.put('http://localhost:3000/api/upload', fd).toPromise()
-  }  
-
-
 
   // ### POST REQUEST ###
   // SAVES ONE FORM TO MYSQL

@@ -28,7 +28,7 @@ const POOL = mysql.createPool({
 app.use(cors())
 
 // log requests using morgan
-app.use(morgan('combined'))
+app.use(morgan('common'))
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -42,30 +42,9 @@ app.use(bodyParser.json())
 // ## PUT /API/UPLOAD/ ##
 app.put('/api/upload', upload.none('data'), async (req, resp) => {
     const data = JSON.parse(req.body.data)
-    const id = data.id
     console.info("PUTTING", data)
-    let currentData = (await QUERY_SELECT_FROM_VIEW(id)).map(d => {
-        return {
-            id: d.id,
-            task_id: d.task_id,
-            description: d.description,
-            priority: d.priority,
-            name: d.name,
-            due: d.due
-        }
-    })
-    const toDelete = currentData.filter((task) =>
-        data.tasks.every(include => 
-            task.task_id != include.task_id)
-        ).map (d => {
-            return d.task_id
-        }
-    )
-    console.info("to Delete: ", toDelete)
-    if (toDelete.length > 0) {
-        await QUERY_DELETE_TASK_BY_TASK_ID([toDelete])
-    }
-    await SQL_UPDATE(data);
+    await SQL_DELETE_REMOVED_TASKS(data);
+    await SQL_UPSERT(data);
     resp.status(200)
     resp.type('application/json')
     resp.json({})
@@ -94,7 +73,10 @@ app.delete('/api/todo/:id', async (req, resp) => {
 app.post('/api/upload', upload.none('data'), async (req, resp) => {
     const data = JSON.parse(req.body.data)
     console.info("POSTING", data)
-    await SQL_INSERT(data);
+    if (data.id != null) {
+        // await SQL_DELETE_REMOVED_TASKS(data);
+    }
+    await SQL_UPSERT(data);
     resp.status(200)
     resp.type('application/json')
     resp.json({})
@@ -104,8 +86,6 @@ app.post('/api/upload', upload.none('data'), async (req, resp) => {
 // ## GET /API/TODO/?ID ##
 app.get('/api/todo/:id', async (req, resp) => {
     const id = req.params.id
-    console.info(id)
-
     if (id === 'all') {
         try {
             const result = await QUERY_SELECT_ALL_TODO()
@@ -141,51 +121,47 @@ app.get('/api/todo/:id', async (req, resp) => {
 
 
 // #### FUNCTIONS ####
-// Insert data
-SQL_INSERT = async (data) => {
-    const id = (await QUERY_INSERT_TODO_RETURN_ID([data['name'], data['due']])).insertId
-    const taskArray = data.tasks.map(task => {
-        return [id, task.description, task.priority]
-    })
-    if (taskArray.length > 0) {
-        await QUERY_INSERT_TASKS([taskArray])
-    }
-    return Promise.resolve()
-}
-
-SQL_UPDATE = async (data) => {
+SQL_UPSERT = async (data) => {
     try {
-        // check which queries have no id
-        let insertTask = [...data.tasks].filter(task => {
-            if(task.task_id == null) return task
-        })
-        let updateTask = [...data.tasks].filter(task => {
-            if(task.task_id != null) return task
-        })
+        const id = (await QUERY_INSERT_TODO_RETURN_ID([data['id'],data['name'], data['due']])).insertId
 
-        insertTask = insertTask.map(task => {
-            return [data.id, task.description, task.priority]
+        upsertTask = data.tasks.map(task => {
+            return [!!task.task_id ? task.task_id : null, id, task.description, task.priority]
         }) 
-        updateTask = updateTask.map(task => {
-            return [task.task_id, data.id, task.description, task.priority]
-        })
 
-        console.info("insert: " , insertTask)
-        console.info("update: " , updateTask)
-        await QUERY_UPDATE_TODO_BY_ID([data['name'], data['due'], data['id']])
+        // await QUERY_INSERT_TODO_RETURN_ID([data['id'],data['name'], data['due']])
 
-        if (data.tasks.length > 0) {
-            if (insertTask.length > 0) {
-                await QUERY_INSERT_TASKS([insertTask])
-            }
-            if (updateTask.length > 0) {
-                await QUERY_UPDATE_TASK_BY_TASK_ID([updateTask])
-            }
+        if (upsertTask.length > 0) {
+            await QUERY_UPSERT_TASK_BY_TASK_ID([upsertTask])
         }
     } catch (e) {
         console.info("UPDATE ERROR: ", e)
     }
 
+}
+
+SQL_DELETE_REMOVED_TASKS = async (data) => {
+    const id = data.id
+    let currentData = (await QUERY_SELECT_FROM_VIEW(id)).map(d => {
+        return {
+            id: d.id,
+            task_id: d.task_id,
+            description: d.description,
+            priority: d.priority,
+            name: d.name,
+            due: d.due
+        }
+    })
+    const toDelete = currentData.filter((task) =>
+        data.tasks.every(include => 
+            task.task_id != include.task_id)
+        ).map (d => {
+            return d.task_id
+        }
+    )
+    if (toDelete.length > 0) {
+        await QUERY_DELETE_TASK_BY_TASK_ID([toDelete])
+    }
 }
 
 // Make SQL Query
@@ -204,8 +180,8 @@ makeQuery = (STMT, POOL) => {
 }
 
 // SQL STATEMENTS
-const INSERT_TODO_RETURN_ID = 'INSERT INTO todo (name, due) VALUES (?,?)'
-const INSERT_TASKS = 'INSERT INTO tasks (id, description, priority) VALUES ?'
+const UPSERT_TODO_RETURN_ID = 'INSERT INTO todo (id, name, due) VALUES (?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name), due=VALUES(due)'
+// const INSERT_TODO_RETURN_ID = 'INSERT INTO todo (name, due) VALUES (?,?)'
 
 const SELECT_ALL_TODO = 'SELECT * FROM todo'
 const SELECT_TODO_WITH_ID = 'SELECT * FROM todo WHERE id = ?'
@@ -216,12 +192,11 @@ const DELETE_TASKS_BY_TASK_ID = 'DELETE FROM tasks WHERE task_id IN (?)'
 const DELETE_TODO_WITH_ID = 'DELETE FROM todo WHERE id = ?';
 const DELETE_ALL_TASK_WITH_ID = 'DELETE FROM tasks WHERE id = ?';
 
-const UPDATE_TODO_BY_ID = 'UPDATE todo SET name=?, due=? WHERE id = ?'
-const UPDATE_TASKS_BY_TASK_ID = 'INSERT INTO tasks (task_id, id, description, priority) VALUES ? ON DUPLICATE KEY UPDATE description=VALUES(description), priority=VALUES(priority)'
+// const UPDATE_TODO_BY_ID = 'UPDATE todo SET name=?, due=? WHERE id = ?'
+const UPSERT_TASKS_BY_TASK_ID = 'INSERT INTO tasks (task_id, id, description, priority) VALUES ? ON DUPLICATE KEY UPDATE description=VALUES(description), priority=VALUES(priority)'
 
 // SQL QUERIES
-const QUERY_INSERT_TODO_RETURN_ID = makeQuery(INSERT_TODO_RETURN_ID, POOL)
-const QUERY_INSERT_TASKS = makeQuery(INSERT_TASKS, POOL)
+const QUERY_INSERT_TODO_RETURN_ID = makeQuery(UPSERT_TODO_RETURN_ID, POOL)
 
 const QUERY_SELECT_ALL_TODO = makeQuery(SELECT_ALL_TODO, POOL)
 const QUERY_SELECT_TODO_WITH_ID = makeQuery(SELECT_TODO_WITH_ID, POOL) 
@@ -232,8 +207,8 @@ const QUERY_DELETE_TODO_WITH_ID = makeQuery(DELETE_TODO_WITH_ID, POOL)
 const QUERY_DELETE_ALL_TASKS_WITH_ID = makeQuery(DELETE_ALL_TASK_WITH_ID, POOL)
 const QUERY_DELETE_TASK_BY_TASK_ID = makeQuery(DELETE_TASKS_BY_TASK_ID, POOL)
 
-const QUERY_UPDATE_TODO_BY_ID = makeQuery(UPDATE_TODO_BY_ID, POOL)
-const QUERY_UPDATE_TASK_BY_TASK_ID = makeQuery(UPDATE_TASKS_BY_TASK_ID, POOL)
+// const QUERY_UPDATE_TODO_BY_ID = makeQuery(UPDATE_TODO_BY_ID, POOL)
+const QUERY_UPSERT_TASK_BY_TASK_ID = makeQuery(UPSERT_TASKS_BY_TASK_ID, POOL)
  
 // Test connection of database
 POOL.getConnection()
