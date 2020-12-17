@@ -38,18 +38,6 @@ app.use(bodyParser.json())
 
 // #### RESOURCES #### 
 
-// ### PUT REQUEST ###
-// ## PUT /API/UPLOAD/ ##
-app.put('/api/upload', upload.none('data'), async (req, resp) => {
-    const data = JSON.parse(req.body.data)
-    console.info("PUTTING", data)
-    await SQL_DELETE_REMOVED_TASKS(data);
-    await SQL_UPSERT(data);
-    resp.status(200)
-    resp.type('application/json')
-    resp.json({})
-})
-
 // ### DELETE REQUESTS ###
 // ## DELETE /API/TODO/ID ##
 app.delete('/api/todo/:id', async (req, resp) => {
@@ -74,7 +62,7 @@ app.post('/api/upload', upload.none('data'), async (req, resp) => {
     const data = JSON.parse(req.body.data)
     console.info("POSTING", data)
     if (data.id != null) {
-        // await SQL_DELETE_REMOVED_TASKS(data);
+        await SQL_DELETE_REMOVED_TASKS(data);
     }
     await SQL_UPSERT(data);
     resp.status(200)
@@ -123,16 +111,12 @@ app.get('/api/todo/:id', async (req, resp) => {
 // #### FUNCTIONS ####
 SQL_UPSERT = async (data) => {
     try {
-        const id = (await QUERY_INSERT_TODO_RETURN_ID([data['id'],data['name'], data['due']])).insertId
-
+        const id = (await QUERY_INSERT_TODO_RETURN_ID([data['id'],data['name'], data['due']])).insertId || data.id
         upsertTask = data.tasks.map(task => {
-            return [!!task.task_id ? task.task_id : null, id, task.description, task.priority]
+            return [task.task_id, id, task.description, task.priority]
         }) 
-
-        // await QUERY_INSERT_TODO_RETURN_ID([data['id'],data['name'], data['due']])
-
         if (upsertTask.length > 0) {
-            await QUERY_UPSERT_TASK_BY_TASK_ID([upsertTask])
+            console.info(await QUERY_UPSERT_TASK_BY_TASK_ID([upsertTask]))
         }
     } catch (e) {
         console.info("UPDATE ERROR: ", e)
@@ -180,8 +164,8 @@ makeQuery = (STMT, POOL) => {
 }
 
 // SQL STATEMENTS
-const UPSERT_TODO_RETURN_ID = 'INSERT INTO todo (id, name, due) VALUES (?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name), due=VALUES(due)'
-// const INSERT_TODO_RETURN_ID = 'INSERT INTO todo (name, due) VALUES (?,?)'
+const UPSERT_TODO_RETURN_ID = 'INSERT INTO todo (id, name, due) VALUES (?,?,?) AS data ON DUPLICATE KEY UPDATE name=data.name, due=data.due'
+const UPSERT_TASKS_BY_TASK_ID = 'INSERT INTO tasks (task_id, id, description, priority) VALUES ? AS data ON DUPLICATE KEY UPDATE description=data.description, priority=data.priority'
 
 const SELECT_ALL_TODO = 'SELECT * FROM todo'
 const SELECT_TODO_WITH_ID = 'SELECT * FROM todo WHERE id = ?'
@@ -192,11 +176,9 @@ const DELETE_TASKS_BY_TASK_ID = 'DELETE FROM tasks WHERE task_id IN (?)'
 const DELETE_TODO_WITH_ID = 'DELETE FROM todo WHERE id = ?';
 const DELETE_ALL_TASK_WITH_ID = 'DELETE FROM tasks WHERE id = ?';
 
-// const UPDATE_TODO_BY_ID = 'UPDATE todo SET name=?, due=? WHERE id = ?'
-const UPSERT_TASKS_BY_TASK_ID = 'INSERT INTO tasks (task_id, id, description, priority) VALUES ? ON DUPLICATE KEY UPDATE description=VALUES(description), priority=VALUES(priority)'
-
 // SQL QUERIES
 const QUERY_INSERT_TODO_RETURN_ID = makeQuery(UPSERT_TODO_RETURN_ID, POOL)
+const QUERY_UPSERT_TASK_BY_TASK_ID = makeQuery(UPSERT_TASKS_BY_TASK_ID, POOL)
 
 const QUERY_SELECT_ALL_TODO = makeQuery(SELECT_ALL_TODO, POOL)
 const QUERY_SELECT_TODO_WITH_ID = makeQuery(SELECT_TODO_WITH_ID, POOL) 
@@ -206,9 +188,6 @@ const QUERY_SELECT_FROM_VIEW = makeQuery(SELECT_VIEW_UPDATE, POOL)
 const QUERY_DELETE_TODO_WITH_ID = makeQuery(DELETE_TODO_WITH_ID, POOL)
 const QUERY_DELETE_ALL_TASKS_WITH_ID = makeQuery(DELETE_ALL_TASK_WITH_ID, POOL)
 const QUERY_DELETE_TASK_BY_TASK_ID = makeQuery(DELETE_TASKS_BY_TASK_ID, POOL)
-
-// const QUERY_UPDATE_TODO_BY_ID = makeQuery(UPDATE_TODO_BY_ID, POOL)
-const QUERY_UPSERT_TASK_BY_TASK_ID = makeQuery(UPSERT_TASKS_BY_TASK_ID, POOL)
  
 // Test connection of database
 POOL.getConnection()
